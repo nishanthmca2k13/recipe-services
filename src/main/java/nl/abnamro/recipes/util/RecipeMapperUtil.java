@@ -1,73 +1,112 @@
 package nl.abnamro.recipes.util;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import nl.abnamro.recipes.entity.RecipeEntity;
 import nl.abnamro.recipes.model.IngredientVO;
 import nl.abnamro.recipes.model.RecipeVO;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.stereotype.Component;
 
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 
 @Slf4j
 @Component
 public class RecipeMapperUtil {
-    //Method to map fields between Recipe and Recipe Entity
+
+    private static String PATTERN = "dd-MM-yyyy HH:mm:ss";
+
+    /**
+     * Map VO to entity
+     *
+     * @param recipeVO
+     * @return recipeEntity
+     */
     public static RecipeEntity mapToRecipeEntity(RecipeVO recipeVO) {
-        RecipeEntity rEntity = new RecipeEntity();
-        //Map primitive fields
-        rEntity.setId(recipeVO.getId());
-        rEntity.setName(recipeVO.getName());
-        rEntity.setType(recipeVO.getType());
-        rEntity.setServingCapacity(recipeVO.getServingCapacity());
-
-        //Save current date time into recipe instance, if not given
-        if (recipeVO.getCreationDateTime() == null) {
-            Optional<Date> currentDateTime = RecipeUtil.getCurrentDateTime();
-            if (currentDateTime.isPresent())
-                log.debug("Current DateTime to be set in recipe entity: " + currentDateTime.toString());
-            else
-                log.warn("Setting null to current date time field in recipe entity");
-            rEntity.setCreationDateTime(currentDateTime.get());
-        } else {
-            log.debug("Retaining given creation date time value into recipe entity");
-            rEntity.setCreationDateTime(recipeVO.getCreationDateTime());
-        }
-
-        //Convert ingredients list into String and set to recipe entity
-        log.debug("Number of ingredients to convert to string: " + recipeVO.getIngredientsList().size());
-        String ingredients = RecipeUtil.convertToJSONString(recipeVO.getIngredientsList());
-        log.debug("Ingredients String: " + ingredients);
-        rEntity.setIngredients(ingredients);
-
-        rEntity.setInstructions(recipeVO.getInstructions());
-
-        return rEntity;
+        RecipeEntity recipeEntity = new RecipeEntity();
+        recipeEntity.setId(recipeVO.getId());
+        recipeEntity.setName(recipeVO.getName());
+        recipeEntity.setType(recipeVO.getType());
+        recipeEntity.setServingCapacity(recipeVO.getServingCapacity());
+        recipeEntity.setIngredients(convertToJSONString(recipeVO.getIngredientsList()));
+        recipeEntity.setInstructions(recipeVO.getInstructions());
+        return recipeEntity;
     }
 
-    //Method to map fields between Recipe and Recipe Entity
+    /**
+     * map Entity to VO
+     *
+     * @param recipeEntity
+     * @return
+     */
     public static RecipeVO mapToRecipeVO(RecipeEntity recipeEntity) {
         RecipeVO recipeVO = new RecipeVO();
-        //Map primitive fields
         recipeVO.setId(recipeEntity.getId());
         recipeVO.setName(recipeEntity.getName());
         recipeVO.setType(recipeEntity.getType());
         recipeVO.setServingCapacity(recipeEntity.getServingCapacity());
-
-        //Format creation date time to required format
-        if (recipeEntity.getCreationDateTime() != null)
-            recipeVO.setCDateTimeString(RecipeUtil.formatDateTime(recipeEntity.getCreationDateTime()));
-        recipeVO.setCreationDateTime(recipeEntity.getCreationDateTime());
-
-        //Convert ingredients string into list and set to recipe object
-        log.debug("Ingredients String from DB: " + recipeEntity.getIngredients());
-        List<IngredientVO> ingredientVOList = RecipeUtil.convertJSONStringToIngredientVOList(recipeEntity.getIngredients());
-        log.debug("Ingredients List size after conversion: " + ingredientVOList.size());
-        recipeVO.setIngredientsList(ingredientVOList);
-
+        recipeVO.setIngredientsList(convertJSONStringToIngredientVOList(recipeEntity.getIngredients()));
         recipeVO.setInstructions(recipeEntity.getInstructions());
-
+        recipeVO.setCreationDate(formatDateTime(recipeEntity.getCreationDateTime()));
         return recipeVO;
+    }
+
+    /**
+     * transform Ingredients List to Json string
+     *
+     * @param ingredientVOList
+     * @return
+     */
+    public static String convertToJSONString(List<IngredientVO> ingredientVOList) {
+        ObjectMapper mapper = new ObjectMapper();
+        String jsonString = null;
+        try {
+            jsonString = mapper.writeValueAsString(ingredientVOList);
+        } catch (Exception e) {
+            log.error("error while converting List to JSON String");
+            log.error(ExceptionUtils.getStackTrace(e));
+        }
+        return jsonString;
+    }
+
+    /**
+     * transform string to Ingredients List
+     *
+     * @param jsonString
+     * @return
+     */
+    public static List<IngredientVO> convertJSONStringToIngredientVOList(String jsonString) {
+        ObjectMapper mapper = new ObjectMapper();
+        List<IngredientVO> ingredientVOList = null;
+        try {
+            ingredientVOList = Arrays.asList(mapper.readValue(jsonString, IngredientVO[].class));
+        } catch (Exception e) {
+            log.error("error while converting JSON String to Ingredients List");
+            log.error(ExceptionUtils.getStackTrace(e));
+        }
+        return ingredientVOList;
+    }
+
+
+    /**
+     * date forma
+     *
+     * @param date
+     * @return
+     */
+    public static String formatDateTime(Date date) {
+        try {
+            SimpleDateFormat formatter = new SimpleDateFormat(PATTERN);
+            String formattedDateTimeString = formatter.format(date);
+            log.debug("Formatted DateTime: " + formattedDateTimeString);
+            return formattedDateTimeString;
+        } catch (Exception e) {
+            log.error("Exception caught while formatting and parsing date time in " + PATTERN);
+            ExceptionUtils.getStackTrace(e);
+            return null;
+        }
     }
 }

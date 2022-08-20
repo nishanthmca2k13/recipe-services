@@ -9,8 +9,9 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class RecipeSearchCriteria {
+public class RecipeFilterCriteria {
     private String type;
     private Integer servingCapacity;
     private IngredientSearchVO ingredientSearchVO;
+    private String instructions;
 }

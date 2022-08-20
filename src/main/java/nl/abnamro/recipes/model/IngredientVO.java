@@ -1,6 +1,8 @@
 package nl.abnamro.recipes.model;
 
+
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -9,7 +11,14 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode
 public class IngredientVO {
-	private String name;
-	private String quantity;
+    @EqualsAndHashCode.Exclude
+    private String name;
+
+    @EqualsAndHashCode.Include
+    private String getNameIgnoreCase() {
+        return name != null ? name.toLowerCase() : null;
+    }
+
 }
