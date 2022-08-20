@@ -1,6 +1,8 @@
 package nl.abnamro.recipes.exception;
 
 import lombok.extern.slf4j.Slf4j;
+import nl.abnamro.recipes.exception.model.ErrorMessages;
+import nl.abnamro.recipes.exception.model.ErrorMessagesMapper;
 import nl.abnamro.recipes.exception.model.ErrorResponse;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.http.HttpStatus;
@@ -23,9 +25,8 @@ public class RecipesRestControllerAdvice extends ResponseEntityExceptionHandler 
      * @return
      */
     @ExceptionHandler(NoRecipesFoundException.class)
-    @ResponseStatus(HttpStatus.NOT_FOUND)
     public ResponseEntity<Object> handleRecipesNotFoundException(NoRecipesFoundException ex) {
-        return buildErrorResponse(ex, ex.getMessage(), ex.getStatus());
+        return buildErrorResponse(ex, ex.getMessage(), HttpStatus.NO_CONTENT);
     }
 
     /**
@@ -35,7 +36,6 @@ public class RecipesRestControllerAdvice extends ResponseEntityExceptionHandler 
      * @return
      */
     @ExceptionHandler(InvalidDataAccessResourceUsageException.class)
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ResponseEntity<Object> handleDataAccessException(InvalidDataAccessResourceUsageException ex) {
         return buildErrorResponse(ex, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
@@ -48,9 +48,8 @@ public class RecipesRestControllerAdvice extends ResponseEntityExceptionHandler 
      * @return
      */
     @ExceptionHandler(BadRequestException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseEntity<Object> handleBadRequestException(BadRequestException ex) {
-        return buildErrorResponse(ex, ex.getMessage(), ex.getStatus());
+        return buildErrorResponse(ex, ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
     /**
@@ -73,15 +72,21 @@ public class RecipesRestControllerAdvice extends ResponseEntityExceptionHandler 
      * @return
      */
     @ExceptionHandler(Exception.class)
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ResponseEntity<Object> handleAllUncaughtException(Exception e) {
         return buildErrorResponse(e, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    // Common method to build error response and return ErrorResponse Instance
-    private ResponseEntity<Object> buildErrorResponse(Exception e, String message, HttpStatus status) {
-        ErrorResponse errorResponse = new ErrorResponse(status.value(), message, LocalDateTime.now());
+    private ResponseEntity<Object> buildErrorResponse(Exception e, String errorCode, HttpStatus status) {
+        ErrorResponse errorResponse = new ErrorResponse(status.value(), getTextMessage(errorCode), LocalDateTime.now());
         log.error("error response: {} ", e);
         return ResponseEntity.status(status).body(errorResponse);
+    }
+
+    private String getTextMessage(String errorCode) {
+        ErrorMessages errorMessages = ErrorMessagesMapper.get(errorCode);
+        if (errorMessages == null) {
+            return ErrorMessages.DEFAULT_MSG.getValue();
+        }
+        return errorMessages.getValue();
     }
 }

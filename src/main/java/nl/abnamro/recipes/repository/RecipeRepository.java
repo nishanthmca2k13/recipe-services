@@ -14,8 +14,8 @@ public interface RecipeRepository extends JpaRepository<RecipeEntity, Integer> {
     @Query(nativeQuery = true, value = "SELECT * FROM recipes r WHERE (:type is null or r.TYPE = :type)" +
             " AND  (:servingCapacity is null or r.SERVING_CAPACITY = :servingCapacity)" +
             " AND (:instructions is null or LOWER(r.INSTRUCTIONS) LIKE LOWER(concat('%', :instructions, '%')))")
-    public List<RecipeEntity> findRecipeByTypeAndServingCapacityAndInstructions(@Param("type") String type,
-                                                                                @Param("servingCapacity") Integer servingCapacity,
-                                                                                @Param("instructions") String instructions);
+    public List<RecipeEntity> findRecipeByTypeAndServCapAndInstruc(@Param("type") String type,
+                                                                   @Param("servingCapacity") Integer servingCapacity,
+                                                                   @Param("instructions") String instructions);
 
 }

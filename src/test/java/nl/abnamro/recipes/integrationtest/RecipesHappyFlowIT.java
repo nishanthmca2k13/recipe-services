@@ -96,7 +96,7 @@ public class RecipesHappyFlowIT {
     public void filterRecipesNoResultsIT() {
         String request = "{" +
                 " \"type\": \"VEG\", " +
-                " \"servingCapacity\": 3, " +
+                " \"servingCapacity\": 23, " +
                 " \"instructions\": \"oven\", " +
                 " \"ingredientSearchVO\": {" +
                 " \"inclusion\": \"INCLUDE\", " +

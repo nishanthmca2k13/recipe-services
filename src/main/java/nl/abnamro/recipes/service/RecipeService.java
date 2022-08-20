@@ -8,7 +8,5 @@ import java.util.List;
 public interface RecipeService {
     public RecipeVO saveRecipeToRepository(RecipeVO recipeVO);
 
-    public List<RecipeVO> getAllRecipesFromRepository();
-
     public List<RecipeVO> filterRecipes(RecipeFilterCriteria recipeFilterCriteria);
 }

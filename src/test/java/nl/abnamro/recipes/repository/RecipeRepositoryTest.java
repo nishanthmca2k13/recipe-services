@@ -21,14 +21,14 @@ class RecipeRepositoryTest {
     @Test
     void findRecipeByTypeAndServingCapacityAndInstructions() {
         List<RecipeEntity> result = recipeRepository
-                .findRecipeByTypeAndServingCapacityAndInstructions("VEG", 3, "oven");
+                .findRecipeByTypeAndServCapAndInstruc("VEG", 3, "oven");
         assertEquals(2, result.size());
     }
 
     @Test
     void findRecipeByTypeAndServingCapacityAndInstructionsEmptyResult() {
         List<RecipeEntity> result = recipeRepository
-                .findRecipeByTypeAndServingCapacityAndInstructions("NON-VEG", 4, "oven");
+                .findRecipeByTypeAndServCapAndInstruc("NON-VEG", 4, "oven");
         assertEquals(0, result.size());
     }
 }

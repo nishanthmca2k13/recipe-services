@@ -17,7 +17,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import javax.swing.text.html.parser.Entity;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -50,14 +49,14 @@ class RecipeServiceImplTest {
         BadRequestException badRequestException = Assertions.assertThrows(BadRequestException.class, () -> {
             RecipeVO result = recipeService.saveRecipeToRepository(recipeVO);
         });
-        assertEquals("400 BAD_REQUEST \"Bad Request, check request parameters.\"", badRequestException.getMessage());
+        assertEquals("400 BAD_REQUEST \"BAD_REQUEST_MSG\"", badRequestException.getMessage());
     }
 
     @Test
     void filterRecipesWithResults() {
         RecipeFilterCriteria filterCriteria = createFilterCriteria();
         List<RecipeEntity> recipeEntities = recipeEntityList();
-        when(recipeRepository.findRecipeByTypeAndServingCapacityAndInstructions(filterCriteria.getType(),
+        when(recipeRepository.findRecipeByTypeAndServCapAndInstruc(filterCriteria.getType(),
                 filterCriteria.getServingCapacity(), filterCriteria.getInstructions())).thenReturn(recipeEntities);
         List<RecipeVO> recipeVOS = recipeService.filterRecipes(filterCriteria);
         assertEquals(2, recipeVOS.size());
@@ -68,12 +67,12 @@ class RecipeServiceImplTest {
         RecipeFilterCriteria filterCriteria = createFilterCriteria();
         filterCriteria.getIngredientSearchVO().getIngredientVOList().get(0).setName("Cabbage");
         List<RecipeEntity> recipeEntities = recipeEntityList();
-        when(recipeRepository.findRecipeByTypeAndServingCapacityAndInstructions(filterCriteria.getType(),
+        when(recipeRepository.findRecipeByTypeAndServCapAndInstruc(filterCriteria.getType(),
                 filterCriteria.getServingCapacity(), filterCriteria.getInstructions())).thenReturn(recipeEntities);
         NoRecipesFoundException noRecipesFoundException = Assertions.assertThrows(NoRecipesFoundException.class, () -> {
             List<RecipeVO> recipeVOS = recipeService.filterRecipes(filterCriteria);
         });
-        assertEquals("204 NO_CONTENT \"No recipes found for the search criteria.\"", noRecipesFoundException.getMessage());
+        assertEquals("204 NO_CONTENT \"RECIPES_NOT_FOUND_MSG\"", noRecipesFoundException.getMessage());
     }
 
     private RecipeVO createRecipeVO() {
