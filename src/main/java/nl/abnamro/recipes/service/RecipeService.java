@@ -6,7 +6,15 @@ import nl.abnamro.recipes.model.RecipeVO;
 import java.util.List;
 
 public interface RecipeService {
-    public RecipeVO saveRecipeToRepository(RecipeVO recipeVO);
+    RecipeVO saveRecipe(RecipeVO recipeVO);
 
-    public List<RecipeVO> filterRecipes(RecipeFilterCriteria recipeFilterCriteria);
+    List<RecipeVO> filterRecipes(RecipeFilterCriteria recipeFilterCriteria);
+
+    void deleteRecipe(Integer id);
+
+    RecipeVO modifyExistingRecipe(RecipeVO recipeVO);
+
+    List<RecipeVO> getAllRecipes();
+
+    RecipeVO getRecipe(Integer id);
 }

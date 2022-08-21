@@ -2,6 +2,7 @@ package nl.abnamro.recipes.util;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import nl.abnamro.recipes.entity.IngredientEntity;
 import nl.abnamro.recipes.entity.RecipeEntity;
 import nl.abnamro.recipes.model.IngredientVO;
 import nl.abnamro.recipes.model.RecipeVO;
@@ -12,6 +13,7 @@ import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -31,7 +33,7 @@ public class RecipeMapperUtil {
         recipeEntity.setName(recipeVO.getName());
         recipeEntity.setType(recipeVO.getType());
         recipeEntity.setServingCapacity(recipeVO.getServingCapacity());
-        recipeEntity.setIngredients(convertToJSONString(recipeVO.getIngredientsList()));
+        recipeEntity.setIngredients(mapToIngredientEntityList(recipeVO.getIngredientsList()));
         recipeEntity.setInstructions(recipeVO.getInstructions());
         return recipeEntity;
     }
@@ -48,10 +50,54 @@ public class RecipeMapperUtil {
         recipeVO.setName(recipeEntity.getName());
         recipeVO.setType(recipeEntity.getType());
         recipeVO.setServingCapacity(recipeEntity.getServingCapacity());
-        recipeVO.setIngredientsList(convertJSONStringToIngredientVOList(recipeEntity.getIngredients()));
+        recipeVO.setIngredientsList(mapToIngredientVOList(recipeEntity.getIngredients()));
         recipeVO.setInstructions(recipeEntity.getInstructions());
         recipeVO.setCreationDate(formatDateTime(recipeEntity.getCreationDateTime()));
         return recipeVO;
+    }
+
+    /**
+     * map ingredient VO to entity
+     *
+     * @param ingredientEntity
+     * @return
+     */
+    public static IngredientVO mapToIngredientVO(IngredientEntity ingredientEntity) {
+        IngredientVO ingredientVO = new IngredientVO();
+        ingredientVO.setName(ingredientEntity.getName());
+        return ingredientVO;
+    }
+
+    /**
+     * map ingredient VO to entity
+     *
+     * @param ingredientVO
+     * @return
+     */
+    public static IngredientEntity mapToIngredientEntity(IngredientVO ingredientVO) {
+        IngredientEntity ingredientEntity = new IngredientEntity();
+        ingredientEntity.setName(ingredientVO.getName());
+        return ingredientEntity;
+    }
+
+    /**
+     * map ingredient VO list to entity list
+     *
+     * @param ingredientVOS
+     * @return
+     */
+    public static List<IngredientEntity> mapToIngredientEntityList(List<IngredientVO> ingredientVOS) {
+        return ingredientVOS.stream().map(RecipeMapperUtil::mapToIngredientEntity).collect(Collectors.toList());
+    }
+
+    /**
+     * map ingredient VO list to entity list
+     *
+     * @param ingredientEntities
+     * @return
+     */
+    public static List<IngredientVO> mapToIngredientVOList(List<IngredientEntity> ingredientEntities) {
+        return ingredientEntities.stream().map(RecipeMapperUtil::mapToIngredientVO).collect(Collectors.toList());
     }
 
     /**

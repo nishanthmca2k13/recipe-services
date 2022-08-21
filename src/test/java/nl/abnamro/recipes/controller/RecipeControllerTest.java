@@ -20,6 +20,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.List;
 
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -46,13 +47,52 @@ class RecipeControllerTest {
         String jsonRequest;
         jsonRequest = mapper.writeValueAsString(recipeVO);
 
-        when(recipeService.saveRecipeToRepository(recipeVO)).thenReturn(recipeVO);
+        when(recipeService.saveRecipe(recipeVO)).thenReturn(recipeVO);
         mockMvc.perform(MockMvcRequestBuilders.post("/recipe")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonRequest))
                 .andExpect(status().isCreated());
     }
 
+    @Test
+    void modifyRecipeSuccess() throws Exception {
+        RecipeVO recipeVO = createRecipeVO();
+        ObjectMapper mapper = new ObjectMapper();
+        String jsonRequest;
+        jsonRequest = mapper.writeValueAsString(recipeVO);
+
+        when(recipeService.modifyExistingRecipe(recipeVO)).thenReturn(recipeVO);
+        mockMvc.perform(MockMvcRequestBuilders.put("/recipe")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonRequest))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void deleteRecipeSuccess() throws Exception {
+        doNothing().when(recipeService).deleteRecipe(101);
+        mockMvc.perform(MockMvcRequestBuilders.delete("/recipe/101")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void getRecipeSuccess() throws Exception {
+        RecipeVO recipeVO = createRecipeVO();
+
+        when(recipeService.getRecipe(101)).thenReturn(recipeVO);
+        mockMvc.perform(MockMvcRequestBuilders.get("/recipe/101")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void getAllRecipes() throws Exception {
+        when(recipeService.getAllRecipes()).thenReturn(List.of(createRecipeVO()));
+        mockMvc.perform(MockMvcRequestBuilders.get("/recipes")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+    }
 
     @Test
     void filterRecipes() throws Exception {

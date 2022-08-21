@@ -12,6 +12,34 @@ public class RecipesHappyFlowIT {
     Integer port;
 
     @Test
+    public void filterRecipeseExcludeIT() {
+        String request = "{" +
+                " \"type\": \"VEG\", " +
+                " \"servingCapacity\": 3, " +
+                " \"instructions\": \"oven\", " +
+                " \"ingredientSearchVO\": {" +
+                " \"inclusion\": \"EXCLUDE\", " +
+                "       \"ingredientVOList\": [ " +
+                "           {  \"name\": \"cabbage\" }," +
+                "           {  \"name\": \"tomato\" }" +
+                "         ]" +
+                "   }" +
+                "}";
+        RestAssured
+                .given()
+                .port(port)
+                .body(request)
+                .contentType("application/json")
+                .when()
+                .log().all(true)
+                .post("/recipes/filter")
+                .then()
+                .log().all(true)
+                .statusCode(200)
+                .body("[0].id", Matchers.equalTo(101));
+    }
+
+    @Test
     public void createRecipeIT() {
         String request = "{" +
                 " \"id\": 108, " +
@@ -120,18 +148,16 @@ public class RecipesHappyFlowIT {
     }
 
     @Test
-    public void filterRecipeseExcludeIT() {
+    public void modifyRecipeIT() {
         String request = "{" +
+                " \"id\": 101, " +
+                " \"name\": \"DISH8\", " +
                 " \"type\": \"VEG\", " +
                 " \"servingCapacity\": 3, " +
                 " \"instructions\": \"oven\", " +
-                " \"ingredientSearchVO\": {" +
-                " \"inclusion\": \"EXCLUDE\", " +
-                "       \"ingredientVOList\": [ " +
-                "           {  \"name\": \"cabbage\" }," +
-                "           {  \"name\": \"tomato\" }" +
-                "         ]" +
-                "   }" +
+                " \"ingredientsList\": [ " +
+                "     {  \"name\": \"potato\" }" +
+                "]" +
                 "}";
         RestAssured
                 .given()
@@ -140,10 +166,58 @@ public class RecipesHappyFlowIT {
                 .contentType("application/json")
                 .when()
                 .log().all(true)
-                .post("/recipes/filter")
+                .put("/recipe")
                 .then()
                 .log().all(true)
                 .statusCode(200)
-                .body("[0].id", Matchers.equalTo(101));
+                .body("id", Matchers.equalTo(101))
+                .body("name", Matchers.equalTo("DISH8"));
     }
+
+    @Test
+    public void getRecipeIT() {
+        RestAssured
+                .given()
+                .port(port)
+                .contentType("application/json")
+                .when()
+                .log().all(true)
+                .get("/recipe/101")
+                .then()
+                .log().all(true)
+                .statusCode(200)
+                .body("id", Matchers.equalTo(101))
+                .body("name", Matchers.equalTo("DISH8"));
+    }
+
+    @Test
+    public void getAllRecipesIT() {
+        RestAssured
+                .given()
+                .port(port)
+                .contentType("application/json")
+                .when()
+                .log().all(true)
+                .get("/recipes")
+                .then()
+                .log().all(true)
+                .statusCode(200)
+                .body("[0].id", Matchers.equalTo(101))
+                .body("[3].id", Matchers.equalTo(104));
+    }
+
+    @Test
+    public void deleteRecipeIT() {
+        RestAssured
+                .given()
+                .port(port)
+                .contentType("application/json")
+                .when()
+                .log().all(true)
+                .delete("/recipe/104")
+                .then()
+                .log().all(true)
+                .statusCode(200);
+    }
+
 }
