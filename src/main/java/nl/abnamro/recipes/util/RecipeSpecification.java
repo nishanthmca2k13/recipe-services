@@ -15,6 +15,7 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static java.util.Objects.nonNull;
 import static java.util.Optional.ofNullable;
@@ -63,15 +64,16 @@ public class RecipeSpecification implements Specification<RecipeEntity> {
     private List<Predicate> ingredientPredicates(Root<RecipeEntity> root, CriteriaBuilder cb) {
         List<Predicate> ingredientPredicates = new ArrayList<>();
         if (nonNull(ingredientsInclude)) {
-            for (IngredientEntity ingredient : ingredientsInclude) {
-                ofNullable(ingrInclusionPred(root, cb, ingredient.getName())).ifPresent(ingredientPredicates::add);
-            }
+            ingredientPredicates.addAll(ingredientsInclude
+                    .stream()
+                    .map(ingredient -> ingrInclusionPred(root, cb, ingredient.getName())).collect(Collectors.toList()));
         }
 
         if (nonNull(ingredientsExclude)) {
-            for (IngredientEntity ingredient : ingredientsExclude) {
-                ofNullable(ingrExclusionPred(root, cb, ingredient.getName())).ifPresent(ingredientPredicates::add);
-            }
+            ingredientPredicates.addAll(ingredientsExclude
+                    .stream()
+                    .map(ingredient -> ingrExclusionPred(root, cb, ingredient.getName())).collect(Collectors.toList()));
+
         }
         return ingredientPredicates;
     }
@@ -80,20 +82,20 @@ public class RecipeSpecification implements Specification<RecipeEntity> {
         if (isAllBlank(ingredient)) {
             return null;
         }
-
-        Join<RecipeEntity, IngredientEntity> titleJoin = root.join("ingredients", JoinType.INNER);
-
-        return cb.and(like(cb, titleJoin.get("name"), ingredient));
+        Join<RecipeEntity, IngredientEntity> ingredientsJoin = root.join("ingredients", JoinType.INNER);
+        return cb.and(in(cb, ingredientsJoin.get("name"), ingredient));
     }
 
     private Predicate ingrExclusionPred(Root<RecipeEntity> root, CriteriaBuilder cb, String ingredient) {
         if (isAllBlank(ingredient)) {
             return null;
         }
+        Join<RecipeEntity, IngredientEntity> ingredientsJoin = root.join("ingredients", JoinType.INNER);
+        return cb.or(in(cb, ingredientsJoin.get("name"), ingredient)).not();
+    }
 
-        Join<RecipeEntity, IngredientEntity> titleJoin = root.join("ingredients", JoinType.INNER);
-
-        return cb.and(notLike(cb, titleJoin.get("name"), ingredient)).not();
+    private Predicate in(CriteriaBuilder cb, Path<Object> field, String value) {
+        return cb.in(field).value(value);
     }
 
     private Predicate equals(CriteriaBuilder cb, Path<Object> field, Object value) {
@@ -102,10 +104,6 @@ public class RecipeSpecification implements Specification<RecipeEntity> {
 
     private Predicate like(CriteriaBuilder cb, Path<String> field, String searchVal) {
         return cb.like(cb.lower(field), "%" + searchVal.toLowerCase() + "%");
-    }
-
-    private Predicate notLike(CriteriaBuilder cb, Path<String> field, String searchVal) {
-        return cb.notLike(cb.lower(field), "%" + searchVal.toLowerCase() + "%");
     }
 
 }

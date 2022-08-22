@@ -44,6 +44,22 @@ class RecipeRepositoryTest {
     }
 
     @Test
+    void findAllRecipesWithMatchingRecordsExcludeIngredients() {
+        IngredientEntity ingreTomato = new IngredientEntity();
+        ingreTomato.setName("tomato");
+        IngredientEntity ingregPotato = new IngredientEntity();
+        ingregPotato.setName("potato");
+        List<RecipeEntity> result = recipeRepository
+                .findAll(RecipeSpecification.builder()
+                        .type("VEG")
+                        .servCapacity(3)
+                        .instructions("oven")
+                        .ingredientsExclude(List.of(ingregPotato))
+                        .build());
+        assertEquals(1, result.size());
+    }
+
+    @Test
     void findAllRecipeEmptyRecords() {
         List<RecipeEntity> result = recipeRepository
                 .findAll(RecipeSpecification.builder().type("NON-VEG").servCapacity(4).instructions("oven").build());

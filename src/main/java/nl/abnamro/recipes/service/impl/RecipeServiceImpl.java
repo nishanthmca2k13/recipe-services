@@ -11,7 +11,6 @@ import nl.abnamro.recipes.exception.RecipeNotCreatedException;
 import nl.abnamro.recipes.exception.model.ErrorMessages;
 import nl.abnamro.recipes.model.Inclusion;
 import nl.abnamro.recipes.model.IngredientSearchVO;
-import nl.abnamro.recipes.model.IngredientVO;
 import nl.abnamro.recipes.model.RecipeFilterCriteria;
 import nl.abnamro.recipes.model.RecipeVO;
 import nl.abnamro.recipes.repository.RecipeRepository;
@@ -22,7 +21,6 @@ import nl.abnamro.recipes.util.RecipeUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -73,13 +71,11 @@ public class RecipeServiceImpl implements RecipeService {
     @Override
     public List<RecipeVO> getAllRecipes() {
         List<RecipeEntity> retrievedRecipes = recipeRepository.findAll();
-        List<RecipeVO> recipesList = new ArrayList<>(retrievedRecipes.size());
-        retrievedRecipes.forEach(recipeEntity -> recipesList.add(RecipeMapperUtil.mapToRecipeVO(recipeEntity)));
-        if (CollectionUtils.isEmpty(recipesList)) {
+        if (CollectionUtils.isEmpty(retrievedRecipes)) {
             log.info("Recipes not found in database");
             throw new NoRecipesFoundException(ErrorMessages.RECIPES_NOT_FOUND_MSG.name());
         }
-        return recipesList;
+        return retrievedRecipes.stream().map(RecipeMapperUtil::mapToRecipeVO).collect(Collectors.toList());
     }
 
     /**
@@ -95,19 +91,14 @@ public class RecipeServiceImpl implements RecipeService {
                 .servCapacity(filterCriteria.getServingCapacity())
                 .instructions(filterCriteria.getInstructions())
                 .ingredientsInclude(getIngredientsList(filterCriteria.getIngredientSearchVO(), Inclusion.INCLUDE))
-                //.ingredientsExclude(getIngredientsList(filterCriteria.getIngredientSearchVO(), Inclusion.EXCLUDE))
+                .ingredientsExclude(getIngredientsList(filterCriteria.getIngredientSearchVO(), Inclusion.EXCLUDE))
                 .build());
-        List<RecipeVO> recipesList = new ArrayList<>(filteredRecipesFromDb.size());
-        filteredRecipesFromDb.forEach(recipeEntity -> recipesList.add(RecipeMapperUtil.mapToRecipeVO(recipeEntity)));
-        List<RecipeVO> filteredRecipes = recipesList.stream().filter(recipeVO ->
-                        this.ingredExclusionFilter(recipeVO, filterCriteria.getIngredientSearchVO()))
-                .collect(Collectors.toList());
 
-        if (CollectionUtils.isEmpty(filteredRecipes)) {
+        if (CollectionUtils.isEmpty(filteredRecipesFromDb)) {
             log.info("Recipes not found for the filtered criteria");
             throw new NoRecipesFoundException(ErrorMessages.RECIPES_NOT_FOUND_FILTER_MSG.name());
         }
-        return filteredRecipes;
+        return filteredRecipesFromDb.stream().map(RecipeMapperUtil::mapToRecipeVO).collect(Collectors.toList());
     }
 
     /**
@@ -180,18 +171,12 @@ public class RecipeServiceImpl implements RecipeService {
         recipeRepository.deleteById(id);
     }
 
-    private boolean ingredExclusionFilter(RecipeVO recipeVO, IngredientSearchVO ingredientSearchVO) {
-        if (ingredientSearchVO == null || ingredientSearchVO.getIngredientVOList() == null)
-            return true;
-        List<IngredientVO> ingredientVOList = ingredientSearchVO.getIngredientVOList();
-        if (ingredientSearchVO.getInclusion() == Inclusion.EXCLUDE) {
-            return !ingredientSearchVO.getIngredientVOList().stream()
-                    .anyMatch(ingredientVO -> recipeVO.getIngredientsList().contains(ingredientVO));
-        }
-
-        return true;
-    }
-
+    /**
+     * check is the Recipe found in Database
+     *
+     * @param id
+     * @return
+     */
     private boolean isRecipeFound(Integer id) {
         return recipeRepository.findById(id).isPresent();
     }
