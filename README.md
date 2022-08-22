@@ -50,8 +50,13 @@ Recipe Webservice comes with ReST API Ends points for creating a new recipe, fil
 
 API End Point | Method | Purpose | Request | Response
 ------------ | ------------- | ------------- | ------------ | -------------
-/recipe | POST | Create a new recipe | Recipe Model | Recipe Model with 201 Created on Success, 400 Bad request on failure
-/recipe/filter | POST | filter recipes based on search criteria | List of RecipeVO Model with 200 on Success, 204 if no results found with search
+/recipe | POST   | Create a new recipe                                              | RecipeVO Model       | Recipe Model with 201 Created on Success, 400 Bad request on failure
+/recipe/filter | POST   | filter recipes based on search criteria          | RecipeFilterCriteria | List of RecipeVO Model with 200 on Success, 204 if no results found with search
+/recipe/{id} | GET    | get the single recipe based on the recipe id     | Integer Id           | RecipeVO Model with 200 on Success, 204 if No Recipe found for the ID               
+/recipes | GET    | get all recipes from the database                       |            | get all recipes with 200 on Success, 204 if no results found in database 
+/recipe/{id} | DELETE | delete recipe based on recipe id                     |  Integer Id                     | informational message with 200 on Success, 204 if mentioned recipe not found      
+/recipe | PUT    | modify the existing recipe based on information provide   | RecipeVO Mode        | modified RecipeVO Model with 201 on Success, 400 for failure       
+
 
 ### Future improvements
 - object transformations can be done through [mapStruct](https://mapstruct.org/)
